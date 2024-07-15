@@ -76,3 +76,6 @@ for guess, feedback, eliminated, remaining in st.session_state.guesses:
     st.write(f"Guess: {guess} | Feedback: {''.join(feedback)} | Words eliminated: {eliminated} | Words remaining: {remaining} ({percentage_remaining:.2f}%)")
 
 if len(st.session_state.guesses) >= 6:
+    st.write("Game Over. You've used all your guesses!")
+elif target_word in [guess[0] for guess in st.session_state.guesses]:
+    st.write("Congratulations! You've guessed the word!")
