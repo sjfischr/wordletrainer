@@ -5,7 +5,7 @@ import streamlit as st
 # Load the list of valid words from a text file
 def load_word_list(filename):
     with open(filename, "r") as file:
-        words = [line.strip() for line in file.readlines()]
+        words = [line.strip().lower() for line in file.readlines()]
     return words
 
 valid_words = load_word_list("valid_words.txt")
@@ -13,7 +13,7 @@ valid_words = load_word_list("valid_words.txt")
 # Load target word from configuration
 with open("config.json", "r") as file:
     config = json.load(file)
-target_word = config["target_word"]
+target_word = config["target_word"].lower()
 
 # Function to provide feedback on the guess
 def provide_feedback(guess, target):
@@ -56,9 +56,10 @@ if "guesses" not in st.session_state:
     st.session_state.guesses = []
     st.session_state.remaining_words = valid_words.copy()
 
-guess = st.text_input("Enter your guess (5 letters):")
+guess = st.text_input("Enter your guess (5 letters):").lower()
 
-if st.button("Submit Guess") and len(st.session_state.guesses) < 6:
+if st.button("Submit Guess") or st.session_state.get("submit_guess"):
+    st.session_state["submit_guess"] = False
     if guess in valid_words:
         feedback = provide_feedback(guess, target_word)
         remaining_words = filter_remaining_words(guess, feedback, st.session_state.remaining_words)
@@ -67,6 +68,10 @@ if st.button("Submit Guess") and len(st.session_state.guesses) < 6:
         st.session_state.remaining_words = remaining_words
     else:
         st.error("Invalid word. Please try again.")
+
+# Handle the Enter key
+if guess:
+    st.session_state["submit_guess"] = True
 
 st.write("## Previous Guesses")
 for guess, feedback, eliminated, remaining in st.session_state.guesses:
