@@ -2,13 +2,6 @@ import os
 import json
 import streamlit as st
 
-# Set the port from the environment variable
-port = int(os.environ.get('PORT', 8501))
-
-# Configure Streamlit to use the specified port
-st.set_page_config(port=port)
-
-
 # Load the list of valid words from a text file
 def load_word_list(filename):
     with open(filename, "r") as file:
