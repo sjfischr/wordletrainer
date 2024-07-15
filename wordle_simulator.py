@@ -56,10 +56,11 @@ if "guesses" not in st.session_state:
     st.session_state.guesses = []
     st.session_state.remaining_words = valid_words.copy()
 
-guess = st.text_input("Enter your guess (5 letters):").lower()
+with st.form(key='guess_form', clear_on_submit=True):
+    guess = st.text_input("Enter your guess (5 letters):").lower()
+    submit_button = st.form_submit_button(label='Submit Guess')
 
-if st.button("Submit Guess") or st.session_state.get("submit_guess"):
-    st.session_state["submit_guess"] = False
+if submit_button and guess:
     if guess in valid_words:
         feedback = provide_feedback(guess, target_word)
         remaining_words = filter_remaining_words(guess, feedback, st.session_state.remaining_words)
@@ -69,16 +70,9 @@ if st.button("Submit Guess") or st.session_state.get("submit_guess"):
     else:
         st.error("Invalid word. Please try again.")
 
-# Handle the Enter key
-if guess:
-    st.session_state["submit_guess"] = True
-
 st.write("## Previous Guesses")
 for guess, feedback, eliminated, remaining in st.session_state.guesses:
     percentage_remaining = (remaining / len(valid_words)) * 100
     st.write(f"Guess: {guess} | Feedback: {''.join(feedback)} | Words eliminated: {eliminated} | Words remaining: {remaining} ({percentage_remaining:.2f}%)")
 
 if len(st.session_state.guesses) >= 6:
-    st.write("Game Over. You've used all your guesses!")
-elif target_word in [guess[0] for guess in st.session_state.guesses]:
-    st.write("Congratulations! You've guessed the word!")
