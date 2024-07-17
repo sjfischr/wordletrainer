@@ -58,6 +58,9 @@ def calculate_skill_and_luck(guesses, initial_word_count):
     average_reduction = initial_word_count / len(guesses)
     skill = np.mean([guess[2] for guess in guesses]) / average_reduction
     luck = np.std([guess[2] for guess in guesses]) / average_reduction
+    # Normalize skill and luck to 0-100 range
+    skill = min(max(skill * 50, 0), 100)  # Centered around 50, ranges 0-100
+    luck = min(max((1 - luck) * 100, 0), 100)  # Higher luck means lower variance
     return skill, luck
 
 # Streamlit UI
