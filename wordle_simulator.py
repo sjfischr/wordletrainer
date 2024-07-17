@@ -1,6 +1,7 @@
 import os
 import json
 import streamlit as st
+import numpy as np
 
 # Load the list of valid words from a text file
 def load_word_list(filename):
@@ -49,6 +50,16 @@ def filter_remaining_words(guess, feedback, word_list):
             remaining_words.append(word)
     return remaining_words
 
+# Function to calculate skill and luck
+def calculate_skill_and_luck(guesses, initial_word_count):
+    reductions = [initial_word_count]
+    for i in range(1, len(guesses)):
+        reductions.append(reductions[i-1] - guesses[i-1][2])
+    average_reduction = initial_word_count / len(guesses)
+    skill = np.mean([guess[2] for guess in guesses]) / average_reduction
+    luck = np.std([guess[2] for guess in guesses]) / average_reduction
+    return skill, luck
+
 # Streamlit UI
 st.title("Wordle Simulator")
 
@@ -79,3 +90,9 @@ if len(st.session_state.guesses) >= 6:
     st.write("Game Over. You've used all your guesses!")
 elif target_word in [guess[0] for guess in st.session_state.guesses]:
     st.write("Congratulations! You've guessed the word!")
+
+# Calculate and display skill and luck
+if st.session_state.guesses:
+    skill, luck = calculate_skill_and_luck(st.session_state.guesses, len(valid_words))
+    st.write(f"Skill: {skill:.2f}")
+    st.write(f"Luck: {luck:.2f}")
