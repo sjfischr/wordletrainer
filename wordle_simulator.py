@@ -63,12 +63,25 @@ def calculate_skill_and_luck(guesses, initial_word_count):
     luck = min(max((1 - luck) * 100, 0), 100)  # Higher luck means lower variance
     return skill, luck
 
+# Function to calculate and update skill and luck for each step
+def update_skill_and_luck():
+    skills = []
+    lucks = []
+    initial_word_count = len(valid_words)
+    for i in range(len(st.session_state.guesses)):
+        skill, luck = calculate_skill_and_luck(st.session_state.guesses[:i+1], initial_word_count)
+        skills.append(skill)
+        lucks.append(luck)
+    return skills, lucks
+
 # Streamlit UI
 st.title("Wordle Simulator")
 
 if "guesses" not in st.session_state:
     st.session_state.guesses = []
     st.session_state.remaining_words = valid_words.copy()
+    st.session_state.skills = []
+    st.session_state.lucks = []
 
 with st.form(key='guess_form', clear_on_submit=True):
     guess = st.text_input("Enter your guess (5 letters):").lower()
@@ -81,13 +94,16 @@ if submit_button and guess:
         eliminated_count = len(st.session_state.remaining_words) - len(remaining_words)
         st.session_state.guesses.append((guess, feedback, eliminated_count, len(remaining_words)))
         st.session_state.remaining_words = remaining_words
+        st.session_state.skills, st.session_state.lucks = update_skill_and_luck()
     else:
         st.error("Invalid word. Please try again.")
 
 st.write("## Previous Guesses")
-for guess, feedback, eliminated, remaining in st.session_state.guesses:
+for idx, (guess, feedback, eliminated, remaining) in enumerate(st.session_state.guesses):
     percentage_remaining = (remaining / len(valid_words)) * 100
-    st.write(f"Guess: {guess} | Feedback: {''.join(feedback)} | Words eliminated: {eliminated} | Words remaining: {remaining} ({percentage_remaining:.2f}%)")
+    skill = st.session_state.skills[idx]
+    luck = st.session_state.lucks[idx]
+    st.write(f"Guess: {guess} | Feedback: {''.join(feedback)} | Words eliminated: {eliminated} | Words remaining: {remaining} ({percentage_remaining:.2f}%) | Skill: {skill:.2f} | Luck: {luck:.2f}")
 
 if len(st.session_state.guesses) >= 6:
     st.write("Game Over. You've used all your guesses!")
@@ -97,5 +113,5 @@ elif target_word in [guess[0] for guess in st.session_state.guesses]:
 # Calculate and display skill and luck
 if st.session_state.guesses:
     skill, luck = calculate_skill_and_luck(st.session_state.guesses, len(valid_words))
-    st.write(f"Skill: {skill:.2f}")
-    st.write(f"Luck: {luck:.2f}")
+    st.write(f"Overall Skill: {skill:.2f}")
+    st.write(f"Overall Luck: {luck:.2f}")
