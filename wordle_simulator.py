@@ -2,6 +2,7 @@ import os
 import json
 import streamlit as st
 import numpy as np
+from collections import defaultdict
 
 # Load the list of valid words from a text file
 def load_word_list(filename):
@@ -50,28 +51,41 @@ def filter_remaining_words(guess, feedback, word_list):
             remaining_words.append(word)
     return remaining_words
 
-# Function to calculate skill and luck
-def calculate_skill_and_luck(guesses, initial_word_count):
-    reductions = [initial_word_count]
-    for i in range(1, len(guesses)):
-        reductions.append(reductions[i-1] - guesses[i-1][2])
-    average_reduction = initial_word_count / len(guesses)
-    skill = np.mean([guess[2] for guess in guesses]) / average_reduction
-    luck = np.std([guess[2] for guess in guesses]) / average_reduction
-    # Normalize skill and luck to 0-100 range
-    skill = min(max(skill * 50, 0), 100)  # Centered around 50, ranges 0-100
-    luck = min(max((1 - luck) * 100, 0), 100)  # Higher luck means lower variance
-    return skill, luck
+# Function to calculate the entropy reduction
+def calculate_entropy_reduction(word_list, guess):
+    pattern_counts = defaultdict(int)
+    for word in word_list:
+        feedback = provide_feedback(guess, word)
+        pattern = ''.join(feedback)
+        pattern_counts[pattern] += 1
+    total_words = len(word_list)
+    entropy = -sum((count/total_words) * np.log2(count/total_words) for count in pattern_counts.values())
+    return entropy
 
-# Function to calculate and update skill and luck for each step
-def update_skill_and_luck():
+# Function to calculate skill and luck
+def calculate_skill_and_luck(guesses, initial_word_count, valid_words):
     skills = []
     lucks = []
-    initial_word_count = len(valid_words)
-    for i in range(len(st.session_state.guesses)):
-        skill, luck = calculate_skill_and_luck(st.session_state.guesses[:i+1], initial_word_count)
+    remaining_words = valid_words.copy()
+    
+    for i, (guess, feedback, eliminated, remaining) in enumerate(guesses):
+        entropy_reduction = calculate_entropy_reduction(remaining_words, guess)
+        expected_entropy_reduction = np.log2(len(remaining_words))  # maximum possible reduction in entropy
+        luck = (entropy_reduction / expected_entropy_reduction) * 100
+        
+        remaining_words = filter_remaining_words(guess, feedback, remaining_words)
+        pattern_counts = defaultdict(int)
+        for word in remaining_words:
+            feedback = provide_feedback(guess, word)
+            pattern = ''.join(feedback)
+            pattern_counts[pattern] += 1
+        
+        max_pattern_count = max(pattern_counts.values())
+        skill = ((len(remaining_words) - max_pattern_count) / len(remaining_words)) * 100
+        
         skills.append(skill)
         lucks.append(luck)
+        
     return skills, lucks
 
 # Streamlit UI
@@ -94,7 +108,7 @@ if submit_button and guess:
         eliminated_count = len(st.session_state.remaining_words) - len(remaining_words)
         st.session_state.guesses.append((guess, feedback, eliminated_count, len(remaining_words)))
         st.session_state.remaining_words = remaining_words
-        st.session_state.skills, st.session_state.lucks = update_skill_and_luck()
+        st.session_state.skills, st.session_state.lucks = calculate_skill_and_luck(st.session_state.guesses, len(valid_words), valid_words)
     else:
         st.error("Invalid word. Please try again.")
 
@@ -110,8 +124,8 @@ if len(st.session_state.guesses) >= 6:
 elif target_word in [guess[0] for guess in st.session_state.guesses]:
     st.write("Congratulations! You've guessed the word!")
 
-# Calculate and display skill and luck
+# Calculate and display overall skill and luck
 if st.session_state.guesses:
-    skill, luck = calculate_skill_and_luck(st.session_state.guesses, len(valid_words))
-    st.write(f"Overall Skill: {skill:.2f}")
-    st.write(f"Overall Luck: {luck:.2f}")
+    overall_skill, overall_luck = calculate_skill_and_luck(st.session_state.guesses, len(valid_words), valid_words)
+    st.write(f"Overall Skill: {overall_skill[-1]:.2f}")
+    st.write(f"Overall Luck: {overall_luck[-1]:.2f}")
