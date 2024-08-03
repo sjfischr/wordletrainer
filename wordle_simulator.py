@@ -62,30 +62,34 @@ def calculate_entropy_reduction(word_list, guess):
     entropy = -sum((count/total_words) * np.log2(count/total_words) for count in pattern_counts.values())
     return entropy
 
-# Function to calculate skill and luck
-def calculate_skill_and_luck(guesses, initial_word_count, valid_words):
+# Function to calculate skill and luck based on feedback patterns and word reductions
+def calculate_skill_and_luck(guesses, valid_words):
     skills = []
     lucks = []
     remaining_words = valid_words.copy()
+    total_words = len(valid_words)
     
-    for i, (guess, feedback, eliminated, remaining) in enumerate(guesses):
-        entropy_reduction = calculate_entropy_reduction(remaining_words, guess)
-        expected_entropy_reduction = np.log2(len(remaining_words))  # maximum possible reduction in entropy
-        luck = (entropy_reduction / expected_entropy_reduction) * 100
-        
-        remaining_words = filter_remaining_words(guess, feedback, remaining_words)
-        pattern_counts = defaultdict(int)
+    for guess, feedback, _, remaining in guesses:
+        feedback_patterns = defaultdict(int)
         for word in remaining_words:
-            feedback = provide_feedback(guess, word)
-            pattern = ''.join(feedback)
-            pattern_counts[pattern] += 1
+            pattern = ''.join(provide_feedback(guess, word))
+            feedback_patterns[pattern] += 1
         
-        max_pattern_count = max(pattern_counts.values())
-        skill = ((len(remaining_words) - max_pattern_count) / len(remaining_words)) * 100
+        # Calculate skill as the number of unique feedback patterns normalized
+        unique_patterns = len(feedback_patterns)
+        skill = (unique_patterns / total_words) * 100
+        
+        # Calculate luck as the deviation from the expected reduction
+        expected_reduction = np.mean(list(feedback_patterns.values()))
+        actual_reduction = total_words - remaining
+        luck = ((actual_reduction - expected_reduction) / expected_reduction) * 100 if expected_reduction else 0
         
         skills.append(skill)
         lucks.append(luck)
         
+        # Update remaining words for next iteration
+        remaining_words = [word for word in remaining_words if ''.join(provide_feedback(guess, word)) == ''.join(feedback)]
+    
     return skills, lucks
 
 # Streamlit UI
