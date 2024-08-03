@@ -37,7 +37,21 @@ def provide_feedback(guess, target):
 
     return feedback
 
-
+# Function to filter remaining words
+def filter_remaining_words(guess, feedback, word_list):
+    remaining_words = []
+    for word in word_list:
+        match = True
+        for i in range(5):
+            if (feedback[i] == "🟩" and guess[i] != word[i]) or \
+               (feedback[i] == "🟨" and (guess[i] not in word or guess[i] == word[i])) or \
+               (feedback[i] == "⬜" and guess[i] in word):
+                match = False
+                break
+        if match:
+            remaining_words.append(word)
+    return remaining_words
+    
 # Function to calculate skill and luck based on feedback patterns and word reductions
 def calculate_skill_and_luck(guesses, valid_words):
     skills = []
