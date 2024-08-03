@@ -17,20 +17,26 @@ with open("config.json", "r") as file:
     config = json.load(file)
 target_word = config["target_word"].lower()
 
-# Function to provide feedback on the guess
 def provide_feedback(guess, target):
-    feedback = [""] * 5
+    feedback = ["⬜"] * len(guess)  # Default feedback is gray
     remaining_letters = list(target)
-    for i in range(5):
+    
+    # First pass to assign greens (correct letters in the right position)
+    for i in range(len(guess)):
         if guess[i] == target[i]:
             feedback[i] = "🟩"
-            remaining_letters[i] = None
-        elif guess[i] in remaining_letters:
-            feedback[i] = "🟨"
-            remaining_letters.remove(guess[i])
-        else:
-            feedback[i] = "⬜"
+            remaining_letters[i] = None  # Mark this position as None to ignore in second pass
+
+    # Second pass to assign yellows and confirm gray
+    for i in range(len(guess)):
+        if feedback[i] == "⬜":  # Only consider letters not already marked green
+            if guess[i] in remaining_letters:
+                feedback[i] = "🟨"
+                # Remove the first occurrence from remaining_letters to avoid double counting
+                remaining_letters[remaining_letters.index(guess[i])] = None
+
     return feedback
+
 
 # Function to calculate skill and luck based on feedback patterns and word reductions
 def calculate_skill_and_luck(guesses, valid_words):
