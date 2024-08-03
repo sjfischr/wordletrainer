@@ -21,46 +21,16 @@ target_word = config["target_word"].lower()
 def provide_feedback(guess, target):
     feedback = [""] * 5
     remaining_letters = list(target)
-    # First pass: check for correct letters in correct positions
     for i in range(5):
         if guess[i] == target[i]:
             feedback[i] = "🟩"
             remaining_letters[i] = None
-    # Second pass: check for correct letters in wrong positions
-    for i in range(5):
-        if feedback[i] == "":
-            if guess[i] in remaining_letters:
-                feedback[i] = "🟨"
-                remaining_letters[remaining_letters.index(guess[i])] = None
-            else:
-                feedback[i] = "⬜"
+        elif guess[i] in remaining_letters:
+            feedback[i] = "🟨"
+            remaining_letters.remove(guess[i])
+        else:
+            feedback[i] = "⬜"
     return feedback
-
-# Function to filter remaining words
-def filter_remaining_words(guess, feedback, word_list):
-    remaining_words = []
-    for word in word_list:
-        match = True
-        for i in range(5):
-            if (feedback[i] == "🟩" and guess[i] != word[i]) or \
-               (feedback[i] == "🟨" and (guess[i] not in word or guess[i] == word[i])) or \
-               (feedback[i] == "⬜" and guess[i] in word):
-                match = False
-                break
-        if match:
-            remaining_words.append(word)
-    return remaining_words
-
-# Function to calculate the entropy reduction
-def calculate_entropy_reduction(word_list, guess):
-    pattern_counts = defaultdict(int)
-    for word in word_list:
-        feedback = provide_feedback(guess, word)
-        pattern = ''.join(feedback)
-        pattern_counts[pattern] += 1
-    total_words = len(word_list)
-    entropy = -sum((count/total_words) * np.log2(count/total_words) for count in pattern_counts.values())
-    return entropy
 
 # Function to calculate skill and luck based on feedback patterns and word reductions
 def calculate_skill_and_luck(guesses, valid_words):
@@ -98,8 +68,6 @@ st.title("Wordle Simulator")
 if "guesses" not in st.session_state:
     st.session_state.guesses = []
     st.session_state.remaining_words = valid_words.copy()
-    st.session_state.skills = []
-    st.session_state.lucks = []
 
 with st.form(key='guess_form', clear_on_submit=True):
     guess = st.text_input("Enter your guess (5 letters):").lower()
@@ -118,18 +86,17 @@ if submit_button and guess:
 
 st.write("## Previous Guesses")
 for idx, (guess, feedback, eliminated, remaining) in enumerate(st.session_state.guesses):
-    percentage_remaining = (remaining / len(valid_words)) * 100
     skill = st.session_state.skills[idx]
     luck = st.session_state.lucks[idx]
-    st.write(f"Guess: {guess} | Feedback: {''.join(feedback)} | Words eliminated: {eliminated} | Words remaining: {remaining} ({percentage_remaining:.2f}%) | Skill: {skill:.2f} | Luck: {luck:.2f}")
+    st.write(f"Guess: {guess} | Feedback: {''.join(feedback)} | Words eliminated: {eliminated} | Skill: {skill:.2f} | Luck: {luck:.2f}")
 
 if len(st.session_state.guesses) >= 6:
     st.write("Game Over. You've used all your guesses!")
 elif target_word in [guess[0] for guess in st.session_state.guesses]:
     st.write("Congratulations! You've guessed the word!")
 
-# Calculate and display overall skill and luck
+# Final skill and luck display
 if st.session_state.guesses:
-    overall_skill, overall_luck = calculate_skill_and_luck(st.session_state.guesses, len(valid_words), valid_words)
+    overall_skill, overall_luck = calculate_skill_and_luck(st.session_state.guesses, valid_words)
     st.write(f"Overall Skill: {overall_skill[-1]:.2f}")
     st.write(f"Overall Luck: {overall_luck[-1]:.2f}")
