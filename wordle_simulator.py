@@ -112,7 +112,7 @@ if submit_button and guess:
         eliminated_count = len(st.session_state.remaining_words) - len(remaining_words)
         st.session_state.guesses.append((guess, feedback, eliminated_count, len(remaining_words)))
         st.session_state.remaining_words = remaining_words
-        st.session_state.skills, st.session_state.lucks = calculate_skill_and_luck(st.session_state.guesses, len(valid_words), valid_words)
+        st.session_state.skills, st.session_state.lucks = calculate_skill_and_luck(st.session_state.guesses, valid_words)
     else:
         st.error("Invalid word. Please try again.")
 
