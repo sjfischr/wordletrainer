@@ -106,9 +106,10 @@ if submit_button and guess:
 
 st.write("## Previous Guesses")
 for idx, (guess, feedback, eliminated, remaining) in enumerate(st.session_state.guesses):
+    percentage_remaining = (remaining / len(valid_words)) * 100
     skill = st.session_state.skills[idx]
     luck = st.session_state.lucks[idx]
-    st.write(f"Guess: {guess} | Feedback: {''.join(feedback)} | Words eliminated: {eliminated} | Skill: {skill:.2f} | Luck: {luck:.2f}")
+    st.write(f"Guess: {guess} | Feedback: {''.join(feedback)} | Words eliminated: {eliminated} | Words remaining: {remaining} ({percentage_remaining:.2f}%) | Skill: {skill:.2f} | Luck: {luck:.2f}")
 
 if len(st.session_state.guesses) >= 6:
     st.write("Game Over. You've used all your guesses!")
