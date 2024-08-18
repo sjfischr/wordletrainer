@@ -1684,6 +1684,7 @@ screw
 scrub
 scrum
 scuba
+scute
 sedan
 seedy
 segue
