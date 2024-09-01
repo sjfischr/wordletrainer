@@ -379,6 +379,7 @@ chirp
 chock
 choir
 choke
+chomp
 chord
 chore
 chose
