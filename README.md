@@ -16,16 +16,19 @@ Clone the repository:
 
 ```bash git clone https://github.com/your-username/wordle-simulator.git
 cd wordle-simulator
+```
 
 Install the required Python dependencies:
 
 ```bash
 pip install -r requirements.txt
+```
 
 Run the app:
 
 ```bash
 streamlit run wordle_simulator.py
+```
 
 Open your web browser and go to http://localhost:8501.
 
@@ -33,9 +36,11 @@ Open your web browser and go to http://localhost:8501.
 
 Set the Target Word: Modify the config.json file to set the target word for your game.
 
+```
 {
     "target_word": "scale"
 }
+```
 
 ### Make Guesses:
 
@@ -70,6 +75,7 @@ SCALE	🟩🟩🟩🟩🟩	126	1	100	100
 
 ## Project Structure
 
+```
 wordle-simulator/
 ├── wordle_simulator.py   # Main application script
 ├── config.json           # Configuration file for target word
@@ -77,6 +83,7 @@ wordle-simulator/
 ├── requirements.txt      # Python dependencies
 └── .streamlit/
     └── config.toml       # Streamlit configuration
+```
 
 ## Contributions
 Contributions are welcome! If you'd like to improve the simulator or fix any bugs, feel free to:
