@@ -71,8 +71,11 @@ Compares the actual reduction in possible words after your guess to the expected
 ## Example Gameplay
 Guess	Feedback	    Words Eliminated	Words Remaining	Skill	Luck
 
+
 CRANE	🟨⬜⬜⬜🟩	2189	            127	            90	    95
+
 SCALE	🟩🟩🟩🟩🟩	126	                1	            100	    100
+
 
 ## Project Structure
 
